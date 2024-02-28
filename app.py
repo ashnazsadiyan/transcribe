@@ -13,6 +13,7 @@ video_url = 'https://d8cele0fjkppb.cloudfront.net/ivs/v1/624618927537/h3DzFIBds0
 
 
 os.environ["TRANSFORMERS_CACHE"] = "/tmp/data"
+os.environ['WHISPERS_CACHE_DIR'] = "/tmp"
 
 app = FastAPI()
 handler = Mangum(app)
@@ -83,11 +84,11 @@ def get_transcribing():
 @app.post('/transcribe')
 def get_transcribe():
     try:
-        os.chdir('/tmp/data')
+        os.chdir('/tmp')
         video_url = "https://d8cele0fjkppb.cloudfront.net/ivs/v1/624618927537/h3DzFIBds0W6/2024/2/21/13/34/9426YpfiMxUD/media/hls/master.m3u8"
         command = [
-            '/usr/bin/ffmpeg',
-            # '/usr/share/ffmpeg',
+            # '/usr/bin/ffmpeg',
+            '/usr/share/ffmpeg',
             'ffmpeg',
             '-i',
             video_url,
