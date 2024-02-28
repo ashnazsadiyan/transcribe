@@ -8,7 +8,7 @@ import tempfile
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
-video_url = 'https://d8cele0fjkppb.cloudfront.net/ivs/v1/624618927537/sgo1MOouPvYg/2023/11/30/5/20/HN1McmrcTVMY/media/hls/master.m3u8'
+video_url = 'https://d8cele0fjkppb.cloudfront.net/ivs/v1/624618927537/h3DzFIBds0W6/2024/2/21/13/34/9426YpfiMxUD/media/hls/master.m3u8'
 
 os.environ["TRANSFORMERS_CACHE"] = "/tmp/data"
 
@@ -20,7 +20,7 @@ handler = Mangum(app)
 def get_text():
     try:
         command = [
-            '/usr/share/ffmpeg',
+            # '/usr/share/ffmpeg',
             'ffmpeg',
             '-i',
             video_url,
@@ -66,7 +66,7 @@ def get_transcribing():
             temp_wav.write(stdout)
 
         model = whisper.load_model("base")
-        result = model.transcribe(f"/tmp/{temp_wav.name}", fp16=False)
+        result = model.transcribe(f"{temp_wav.name}", fp16=False)
         print("Answer:", result["text"])
         return {
             "transcribed": result["text"],
