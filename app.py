@@ -52,7 +52,7 @@ def get_transcribing():
     try:
         command = [
             '/usr/share/ffmpeg',
-            'ffmpeg',
+            # 'ffmpeg',
             '-i',
             video_url,
             '-b:a', '64k',
