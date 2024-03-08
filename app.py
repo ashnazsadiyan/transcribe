@@ -3,11 +3,11 @@ import ssl
 import subprocess
 from fastapi import FastAPI, HTTPException
 from mangum import Mangum
-import os
+import io, os
 import tempfile
 from pydub import AudioSegment
 import torch
-
+import numpy as np
 ssl._create_default_https_context = ssl._create_unverified_context
 
 video_url = 'https://d8cele0fjkppb.cloudfront.net/ivs/v1/624618927537/h3DzFIBds0W6/2024/2/21/13/34/9426YpfiMxUD/media/hls/master.m3u8'
@@ -23,18 +23,25 @@ handler = Mangum(app)
 
 
 def extract_video_segment(input_video, time_stamp):
-    start_time, end_time = time_stamp
+    start_time,end_time= time_stamp
+
     try:
         AudioSegment.converter = "/usr/bin/ffmpeg"
-        audio = AudioSegment.from_file(input_video)
-        audio_segment = audio[start_time * 1000:end_time * 1000] 
+        audio = AudioSegment.from_file(io.BytesIO(input_video))
+        audio_segment = audio[start_time * 1000:end_time * 1000]
+        temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        audio_segment.export(temp_file.name, format="wav")
+        
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        model = whisper.load_model("base", download_root="/tmp").to(device)
-        result = model.transcribe(audio_segment, fp16=False)
+        model = whisper.load_model("medium", download_root="/tmp").to(device)
+        result = model.transcribe(temp_file.name, fp16=False)
+
+    
         return {
             "transcribed": result["text"],
         }
+
     except Exception as e:
         print("Error:", str(e))
         return None
@@ -44,8 +51,8 @@ def extract_video_segment(input_video, time_stamp):
 def get_text():
     try:
         command = [
-            # '/usr/bin/ffmpeg',
-            'ffmpeg',
+            '/usr/bin/ffmpeg',
+            # 'ffmpeg',
             '-i',
             video_url,
             '-b:a', '64k',
@@ -58,11 +65,11 @@ def get_text():
         with tempfile.NamedTemporaryFile(dir="/tmp",delete=False, suffix=".wav") as temp_wav:
             temp_wav.write(stdout)
 
-        time_stamps=[[0,7]]
+        time_stamps=[[0,40]]
         extracted_videos = []
 
         for index, time_stamp in enumerate(time_stamps):
-            extracted_video_path = extract_video_segment(temp_wav.name, time_stamp)
+            extracted_video_path = extract_video_segment(stdout, time_stamp)
             if extracted_video_path:
                 print(f"Video segment {index + 1} extracted successfully:", extracted_video_path)
                 extracted_videos.append(extracted_video_path)
@@ -71,7 +78,7 @@ def get_text():
 
 
         return {
-             "transcribed": extracted_video_path,
+             "transcribed": extracted_videos,
         } 
 
         
