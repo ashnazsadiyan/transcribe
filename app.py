@@ -27,6 +27,9 @@ def extract_video_segment(input_video, time_stamp):
 
     try:
         AudioSegment.converter = "/usr/bin/ffmpeg"
+        AudioSegment.ffmpeg = "/usr/bin/ffmpeg"
+        AudioSegment.ffprobe = "/usr/bin/ffprobe"
+
         audio = AudioSegment.from_file(io.BytesIO(input_video))
         audio_segment = audio[start_time * 1000:end_time * 1000]
         temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)

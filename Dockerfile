@@ -14,6 +14,9 @@ ENV NUMBA_CACHE_DIR "/tmp"
 COPY ffmpeg '/usr/share/'
 COPY ffmpeg  '/usr/bin/ffmpeg'
 
+COPY ffprobe '/usr/share/'
+COPY ffprobe  '/usr/bin/ffprobe'
+
 
 RUN pip3 install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
