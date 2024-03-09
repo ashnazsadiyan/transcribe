@@ -7,7 +7,8 @@ import io, os
 import tempfile
 from pydub import AudioSegment
 import torch
-import numpy as np
+from pydantic import BaseModel
+from typing import List,Tuple
 ssl._create_default_https_context = ssl._create_unverified_context
 
 video_url = 'https://d8cele0fjkppb.cloudfront.net/ivs/v1/624618927537/h3DzFIBds0W6/2024/2/21/13/34/9426YpfiMxUD/media/hls/master.m3u8'
@@ -50,14 +51,61 @@ def extract_video_segment(input_video, time_stamp):
         return None
 
 
-@app.get('/index')
-def get_text():
+# @app.get('/index')
+# def get_text():
+#     try:
+#         command = [
+#             '/usr/bin/ffmpeg',
+#             # 'ffmpeg',
+#             '-i',
+#             video_url,
+#             '-b:a', '64k',
+#             '-f', 'wav',  # Force output format to WAV
+#             'pipe:1'  # Send output to stdout
+#         ]
+
+#         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#         stdout, stderr = process.communicate()
+#         with tempfile.NamedTemporaryFile(dir="/tmp",delete=False, suffix=".wav") as temp_wav:
+#             temp_wav.write(stdout)
+
+#         time_stamps=[[0,40]]
+#         extracted_videos = []
+
+#         for index, time_stamp in enumerate(time_stamps):
+#             extracted_video_path = extract_video_segment(stdout, time_stamp)
+#             if extracted_video_path:
+#                 print(f"Video segment {index + 1} extracted successfully:", extracted_video_path)
+#                 extracted_videos.append(extracted_video_path)
+#             else:
+#                 print(f"Failed to extract video segment {index + 1}.")
+
+
+#         return {
+#              "transcribed": extracted_videos,
+#         } 
+
+        
+
+#     except Exception as e:
+#         print(e)
+#         # Handle exceptions and return an appropriate error response
+#         return HTTPException(status_code=500, detail=f"Error processing data: {str(e)}")
+
+
+
+class Transcribing(BaseModel):
+    times: List[Tuple[int, int]]
+    url:str
+
+@app.post('/transcribe')
+def transcribe(transcribing:Transcribing):
     try:
         command = [
             '/usr/bin/ffmpeg',
-            # 'ffmpeg',
+            'ffmpeg',
             '-i',
-            video_url,
+            transcribing.url,
             '-b:a', '64k',
             '-f', 'wav',  # Force output format to WAV
             'pipe:1'  # Send output to stdout
@@ -68,10 +116,10 @@ def get_text():
         with tempfile.NamedTemporaryFile(dir="/tmp",delete=False, suffix=".wav") as temp_wav:
             temp_wav.write(stdout)
 
-        time_stamps=[[0,40]]
+        
         extracted_videos = []
 
-        for index, time_stamp in enumerate(time_stamps):
+        for index, time_stamp in enumerate(transcribing.times):
             extracted_video_path = extract_video_segment(stdout, time_stamp)
             if extracted_video_path:
                 print(f"Video segment {index + 1} extracted successfully:", extracted_video_path)
