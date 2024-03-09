@@ -37,7 +37,7 @@ def extract_video_segment(input_video, time_stamp):
         
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        model = whisper.load_model("medium", download_root="/tmp").to(device)
+        model = whisper.load_model("base", download_root="/tmp").to(device)
         result = model.transcribe(temp_file.name, fp16=False)
 
     
